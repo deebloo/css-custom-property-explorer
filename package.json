@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@types/css": "^0.0.33",
-    "css": "^3.0.0"
+    "css": "^3.0.0",
+    "vis-network": "^9.1.0"
   }
 }

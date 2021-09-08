@@ -1,7 +1,10 @@
 export class Vertex {
   public styles: Map<string, string> = new Map();
+  public label: string;
 
-  constructor(public readonly rule: CSSStyleRule) {
+  constructor(public readonly id: number, public readonly rule: CSSStyleRule) {
+    this.label = this.rule.selectorText;
+
     this.parseRule();
   }
 
@@ -13,7 +16,7 @@ export class Vertex {
 }
 
 export class Edge {
-  constructor(public readonly from: Vertex, public readonly to: Vertex) {}
+  constructor(public readonly from: number, public readonly to: number) {}
 }
 
 export class Graph {
@@ -21,7 +24,7 @@ export class Graph {
 
   constructor(public readonly verticies: Vertex[]) {}
 
-  findCSSVarEdges() {
+  determineVarEdges() {
     let vertex: Vertex;
 
     for (let i = 0; i < this.verticies.length; i++) {
@@ -29,18 +32,18 @@ export class Graph {
 
       const parent = this.findCSSVarParent(vertex);
 
-      if (parent) {
-        this.edges.push(new Edge(vertex, parent));
+      if (typeof parent !== undefined && parent !== null) {
+        this.edges.push(new Edge(i, parent));
       }
     }
   }
 
-  findCSSVarParent(vertex: Vertex): Vertex | null {
+  findCSSVarParent(vertex: Vertex): number | null {
     for (let style of vertex.styles) {
       if (this.isCSSVar(style[1])) {
         const varName = this.getVariableName(style[1]);
 
-        const parent = this.verticies.find((v) => {
+        const parent = this.verticies.findIndex((v) => {
           for (let style of v.styles) {
             if (style[0] === varName) {
               return v;
@@ -48,7 +51,7 @@ export class Graph {
           }
         });
 
-        if (parent) {
+        if (typeof parent !== undefined) {
           return parent;
         }
       }
