@@ -1,5 +1,5 @@
-import { Network } from "vis-network/esnext/esm";
-import { DataSet } from "vis-data/esnext/esm";
+import { Network } from "vis-network/esnext";
+import { DataSet } from "vis-data/esnext";
 
 import { Graph, Vertex } from "./graph";
 
@@ -11,8 +11,6 @@ const verticeies = Array.from(document.styleSheets)
 const graph = new Graph(verticeies);
 
 graph.determineVarEdges();
-
-console.log(graph.edges);
 
 new Network(
   document.getElementById("network") as HTMLDivElement,
