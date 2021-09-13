@@ -28,7 +28,7 @@ export class Graph {
     let vertex: Vertex;
 
     for (let i = 0; i < this.verticies.length; i++) {
-      vertex = this.verticies[i];
+      vertex = this.verticies[i] as Vertex;
 
       const parent = this.findCSSVarParent(vertex);
 
