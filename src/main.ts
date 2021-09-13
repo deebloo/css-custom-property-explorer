@@ -43,27 +43,20 @@ while (currentNode) {
     rule = rules[i] as CSSStyleRule;
 
     if (n.matches(rules[i]!.selectorText)) {
-      edges.push({
-        from: "rule_" + i,
-        to: "node_" + nodeId,
-      });
+      edges.push({ from: "rule_" + i, to: "node_" + nodeId });
 
       // 1. If rules contains css var usage
       if (ruleContainsCssVar(rule)) {
+        // 2. FInd all css var names for rule
         const vars = findCssVarNames(rule);
 
         vars.forEach((name) => {
-          // 2. walk up the tree to find the first parent that declars that var
+          // 3. for each var use, walk up the tree to find the first parent that declars that var
           const res = findCssVarDeclaration(n, name);
 
-          // console.log(res);
-
           if (res !== null) {
-            // 3. draw edge between that parent rule and this rule.
-            edges.push({
-              from: "rule_" + i,
-              to: "rule_" + res,
-            });
+            // 4. draw edge between that parent rule and this rule.
+            edges.push({ from: "rule_" + i, to: "rule_" + res });
           }
         });
       }
@@ -75,9 +68,9 @@ while (currentNode) {
   currentNode = walker.nextNode();
 }
 
-// console.log(nodes);
-// console.log(rules);
-// console.log(edges);
+console.log(nodes);
+console.log(rules);
+console.log(edges);
 
 new Network(
   document.getElementById("network") as HTMLDivElement,
@@ -91,11 +84,27 @@ new Network(
       ...rules.map((r, i) => ({
         id: "rule_" + i,
         label: "RULE: " + r.selectorText,
+        source: r,
       })),
     ]),
     edges: new DataSet(edges),
   },
-  {}
+  {
+    layout: {
+      hierarchical: {
+        enabled: true,
+        levelSeparation: 100,
+        nodeSpacing: 100,
+        treeSpacing: 200,
+        blockShifting: true,
+        edgeMinimization: true,
+        parentCentralization: true,
+        direction: "UD", // UD, DU, LR, RL
+        sortMethod: "hubsize", // hubsize, directed
+        shakeTowards: "roots", // roots, leaves
+      },
+    },
+  }
 );
 
 function ruleContainsCssVar(rule: CSSStyleRule) {
@@ -120,8 +129,6 @@ function findCssVarNames(rule: CSSStyleRule): string[] {
 }
 
 function findCssVarDeclaration(el: HTMLElement, cssVar: string): number | null {
-  console.log(el);
-
   if (el.parentElement) {
     let rule: CSSStyleRule;
 
