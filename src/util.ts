@@ -12,7 +12,9 @@ export function findCssVarNames(rule: CSSStyleRule): string[] {
   const vars: string[] = [];
 
   for (let style of rule.style) {
+    // TODO: This does not work for shorthand like "background"
     const styleValue = rule.style.getPropertyValue(style);
+
     if (styleValue.startsWith('var(')) {
       vars.push(styleValue.replace('var(', '').replace(')', ''));
     }
