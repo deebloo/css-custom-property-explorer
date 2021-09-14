@@ -1,5 +1,10 @@
-import { Network, Edge } from "vis-network/esnext";
-import { DataSet } from "vis-data/esnext";
+import { Network, Edge } from 'vis-network/esnext';
+import { DataSet } from 'vis-data/esnext';
+import {
+  findCssVarDeclaration,
+  findCssVarNames,
+  ruleContainsCssVar,
+} from './util';
 
 /**
  * 1. Flatten all sheets into a single set of  rules
@@ -25,7 +30,7 @@ const edges: Edge[] = [];
  * Create a Tree Walker and skip over any nodes that aren't using css custom properties
  */
 const walker = document.createTreeWalker(
-  document.getElementById("container") as HTMLElement,
+  document.getElementById('container') as HTMLElement,
   NodeFilter.SHOW_ELEMENT
 );
 
@@ -37,13 +42,21 @@ while (currentNode) {
   nodes.push(currentNode);
 
   const n = currentNode as HTMLElement;
+
+  if (n.parentElement) {
+    edges.push({
+      from: 'node_' + nodes.indexOf(n.parentElement),
+      to: 'node_' + nodeId,
+    });
+  }
+
   let rule: CSSStyleRule;
 
   for (let i = 0; i < rules.length; i++) {
     rule = rules[i] as CSSStyleRule;
 
     if (n.matches(rules[i]!.selectorText)) {
-      edges.push({ from: "rule_" + i, to: "node_" + nodeId });
+      edges.push({ from: 'rule_' + i, to: 'node_' + nodeId });
 
       // 1. If rules contains css var usage
       if (ruleContainsCssVar(rule)) {
@@ -52,11 +65,11 @@ while (currentNode) {
 
         vars.forEach((name) => {
           // 3. for each var use, walk up the tree to find the first parent that declars that var
-          const res = findCssVarDeclaration(n, name);
+          const res = findCssVarDeclaration(n, name, rules);
 
           if (res !== null) {
             // 4. draw edge between that parent rule and this rule.
-            edges.push({ from: "rule_" + i, to: "rule_" + res });
+            edges.push({ from: 'rule_' + res, to: 'rule_' + i });
           }
         });
       }
@@ -73,77 +86,27 @@ console.log(rules);
 console.log(edges);
 
 new Network(
-  document.getElementById("network") as HTMLDivElement,
+  document.getElementById('network') as HTMLDivElement,
   {
     nodes: new DataSet([
       ...nodes.map((n, i) => ({
-        id: "node_" + i,
-        label: "EL: " + (n as HTMLElement).tagName,
+        id: 'node_' + i,
+        label: 'EL: ' + (n as HTMLElement).tagName,
         source: n,
       })),
       ...rules.map((r, i) => ({
-        id: "rule_" + i,
-        label: "RULE: " + r.selectorText,
+        id: 'rule_' + i,
+        label: 'RULE: ' + r.selectorText,
         source: r,
       })),
     ]),
     edges: new DataSet(edges),
   },
   {
-    layout: {
-      hierarchical: {
-        enabled: true,
-        levelSeparation: 100,
-        nodeSpacing: 100,
-        treeSpacing: 200,
-        blockShifting: true,
-        edgeMinimization: true,
-        parentCentralization: true,
-        direction: "UD", // UD, DU, LR, RL
-        sortMethod: "hubsize", // hubsize, directed
-        shakeTowards: "roots", // roots, leaves
+    edges: {
+      arrows: {
+        to: true,
       },
     },
   }
 );
-
-function ruleContainsCssVar(rule: CSSStyleRule) {
-  for (let style of rule.style) {
-    if (rule.style.getPropertyValue(style).startsWith("var(")) {
-      return true;
-    }
-  }
-}
-
-function findCssVarNames(rule: CSSStyleRule): string[] {
-  const vars: string[] = [];
-
-  for (let style of rule.style) {
-    const styleValue = rule.style.getPropertyValue(style);
-    if (styleValue.startsWith("var(")) {
-      vars.push(styleValue.replace("var(", "").replace(")", ""));
-    }
-  }
-
-  return vars;
-}
-
-function findCssVarDeclaration(el: HTMLElement, cssVar: string): number | null {
-  if (el.parentElement) {
-    let rule: CSSStyleRule;
-
-    for (let i = 0; i < rules.length; i++) {
-      rule = rules[i] as CSSStyleRule;
-
-      if (el.parentElement.matches(rule.selectorText)) {
-        if (Object.values(rule.style).includes(cssVar)) {
-          return i;
-        }
-      }
-    }
-
-    return findCssVarDeclaration(el.parentElement, cssVar);
-  }
-
-  return null;
-}

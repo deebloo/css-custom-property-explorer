@@ -22,3 +22,27 @@ export function findCssVarNames(rule: CSSStyleRule): string[] {
 
   return vars;
 }
+
+export function findCssVarDeclaration(
+  el: HTMLElement,
+  cssVar: string,
+  rules: CSSStyleRule[]
+): number | null {
+  if (el.parentElement) {
+    let rule: CSSStyleRule;
+
+    for (let i = 0; i < rules.length; i++) {
+      rule = rules[i] as CSSStyleRule;
+
+      if (el.parentElement.matches(rule.selectorText)) {
+        if (Object.values(rule.style).includes(cssVar)) {
+          return i;
+        }
+      }
+    }
+
+    return findCssVarDeclaration(el.parentElement, cssVar, rules);
+  }
+
+  return null;
+}
