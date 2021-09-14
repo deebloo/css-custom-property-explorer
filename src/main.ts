@@ -91,22 +91,24 @@ new Network(
     nodes: new DataSet([
       ...nodes.map((n, i) => ({
         id: 'node_' + i,
-        label: 'EL: ' + (n as HTMLElement).tagName,
-        source: n,
+        label: 'EL:' + n.nodeName,
       })),
       ...rules.map((r, i) => ({
         id: 'rule_' + i,
-        label: 'RULE: ' + r.selectorText,
-        source: r,
+        label: 'CSS:' + r.selectorText,
       })),
     ]),
     edges: new DataSet(edges),
   },
   {
+    nodes: {
+      shape: 'circle',
+    },
     edges: {
       arrows: {
         to: true,
       },
     },
+    layout: {},
   }
 );
