@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/deebloo/css-var-explorer#readme",
   "dependencies": {
-    "vis-network": "^9.1.0"
+    "vis-network": "^10.0.0"
   },
   "devDependencies": {
     "@esm-bundle/chai": "4.3.4-fix.0",
